@@ -1,4 +1,4 @@
-""" This module creates the FastAPI app and registers all 4 module routes into one single server.
+""" This module creates the FastAPI app and registers all module routes into one single server.
       CORS — allows your React frontend to talk to the backend
       Startup events — loads all ML models into memory when server starts (so predictions are fast)
       Global error handling — catches any crash and returns a clean JSON error
@@ -17,9 +17,9 @@ from fastapi.responses import JSONResponse
 import uvicorn
 import logging
 
-# Importing routers from each modules
+# Importing routers from each module
+# NOTE: Soil Analysis module removed from scope
 from disease_module.routes import router as disease_router
-from soil_module.routes    import router as soil_router
 from price_module.routes   import router as price_router
 from chatbot_module.routes import router as chatbot_router
 
@@ -31,7 +31,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
 app = FastAPI(
     title="IADSS API",
     description="""
@@ -39,20 +38,23 @@ app = FastAPI(
     ─────────────────────────────────────────────────
     Modules:
     • Module 1 — Plant Disease Detection   (/api/disease)
-    • Module 2 — Soil Analysis             (/api/soil)
-    • Module 3 — Crop Price Prediction     (/api/price)
-    • Module 4 — Conversational AI Chatbot (/api/chat)
+    • Module 2 — Crop Price Prediction     (/api/price)
+    • Module 3 — Conversational AI Chatbot (/api/chat)
     """,
     version="1.0.0",
 )
 
 
+# ============================================================
+#  CORS MIDDLEWARE
+#  Allows the Next.js frontend to talk to this backend.
+#  Remove "*" before deploying to production.
+# ============================================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",   # React dev server
-        "http://localhost:5173",   # Vite dev server 
-        "*"                        # Remove this in production
+        "http://localhost:3000",   # Next.js dev server
+        "http://localhost:5173",   # Vite dev server (if needed)
     ],
     allow_credentials=True,
     allow_methods=["*"],           # GET, POST, PUT, DELETE etc.
@@ -69,20 +71,15 @@ app.add_middleware(
 async def startup_event():
     logger.info("IADSS Backend Starting...")
 
+    # Module 1 — Plant Disease Detection (YOLO11)
     try:
         from disease_module.predictor import load_model as load_disease
         load_disease()
-        logger.info("Disease Detection model loaded")
+        logger.info("Disease Detection model (YOLO11) loaded")
     except Exception as e:
         logger.warning(f"Disease model not loaded yet: {e}")
 
-    try:
-        from soil_module.predictor import load_model as load_soil
-        load_soil()
-        logger.info("Soil Analysis model loaded")
-    except Exception as e:
-        logger.warning(f"Soil model not loaded yet: {e}")
-
+    # Module 2 — Crop Price Prediction (RF + Prophet + Ridge)
     try:
         from price_module.ensemble import load_models as load_price
         load_price()
@@ -90,6 +87,7 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"Price models not loaded yet: {e}")
 
+    # Module 3 — Conversational AI Chatbot (Gemini RAG)
     try:
         from chatbot_module.rag.retriever import load_vector_store
         load_vector_store()
@@ -97,17 +95,21 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"Chatbot vector store not loaded yet: {e}")
 
-    logger.info("🌾 IADSS API is ready at http://localhost:8000")
+    logger.info("IADSS API is ready at http://localhost:8000")
 
 
-
+# ============================================================
+#  SHUTDOWN EVENT
+# ============================================================
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("IADSS Backend shutting down...")
 
 
-
-#  If any module crashes, returning clean JSON instead of a 500
+# ============================================================
+#  GLOBAL EXCEPTION HANDLER
+#  If any module crashes, returns clean JSON instead of a 500
+# ============================================================
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error on {request.url}: {exc}")
@@ -126,7 +128,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 #  Each module's routes.py plugs in here with a prefix
 # ============================================================
 
-# Module 1 — Plant Disease Detection
+# Module 1 — Plant Disease Detection (YOLO11)
 # Endpoints: POST /api/disease/predict
 #            GET  /api/disease/history
 app.include_router(
@@ -135,16 +137,7 @@ app.include_router(
     tags=["Disease Detection"]
 )
 
-# Module 2 — Soil Analysis & Recommendation
-# Endpoints: POST /api/soil/analyze
-#            POST /api/soil/recommend
-app.include_router(
-    soil_router,
-    prefix="/api/soil",
-    tags=["Soil Analysis"]
-)
-
-# Module 3 — Crop Price Prediction
+# Module 2 — Crop Price Prediction (RF + Prophet + Ridge Meta-Learner)
 # Endpoints: POST /api/price/predict
 #            GET  /api/price/history/{crop}
 #            GET  /api/price/trends
@@ -154,7 +147,7 @@ app.include_router(
     tags=["Crop Price Prediction"]
 )
 
-# Module 4 — Conversational AI Chatbot
+# Module 3 — Conversational AI Chatbot (Gemini 1.5 Flash + RAG)
 # Endpoints: POST /api/chat/message
 #            GET  /api/chat/history
 #            DELETE /api/chat/clear
@@ -165,7 +158,9 @@ app.include_router(
 )
 
 
+# ============================================================
 #  ROOT & HEALTH CHECK ENDPOINTS
+# ============================================================
 
 @app.get("/", tags=["General"])
 async def root():
@@ -176,7 +171,6 @@ async def root():
         "docs": "http://localhost:8000/docs",
         "modules": [
             "Disease Detection → /api/disease",
-            "Soil Analysis     → /api/soil",
             "Price Prediction  → /api/price",
             "AI Chatbot        → /api/chat",
         ]
@@ -187,27 +181,28 @@ async def root():
 async def health_check():
     """
     Health check — use this to verify the server is alive.
-    Your frontend can ping this on load to check connectivity.
+    Frontend pings this on load to confirm backend connectivity.
     """
     return {
         "status": "healthy",
         "service": "IADSS Backend",
         "modules": {
             "disease_detection": "active",
-            "soil_analysis":     "active",
             "price_prediction":  "active",
             "chatbot":           "active",
         }
     }
 
 
+# ============================================================
 #  RUN SERVER
-#  Run this file directly: python main.py
-#  Or use: uvicorn main:app --reload
+#  Run directly : python main.py
+#  Or use       : uvicorn main:app --reload
+# ============================================================
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True    
+        reload=True
     )
