@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 
 # try loading .env from backend folder first, then project root
 backend_env = Path(__file__).resolve().parent.parent / ".env"
@@ -12,22 +12,17 @@ if backend_env.exists():
 elif root_env.exists():
     load_dotenv(dotenv_path=root_env)
 else:
-    load_dotenv()  # fallback — search default locations
+    load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in .env file")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY not found in .env file")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
 
 def generate_response(user_query: str, retrieved_chunks: list[str], model_context: dict = None) -> str:
-    """
-    Send the user query + retrieved knowledge + live model outputs to Gemini
-    and return the generated response.
-    """
-
     knowledge_text = "\n\n".join(retrieved_chunks)
 
     context_section = ""
@@ -54,8 +49,10 @@ FARMER'S QUESTION: {user_query}
 
 ANSWER:"""
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-lite",
-        contents=prompt
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=512
     )
-    return response.text.strip()
+
+    return response.choices[0].message.content.strip()
