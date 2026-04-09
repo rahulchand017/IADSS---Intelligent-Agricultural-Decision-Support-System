@@ -1,25 +1,11 @@
 "use client"
 
 import React from "react"
-
 import { useState, useCallback } from "react"
 import {
-  Upload,
-  ImageIcon,
-  X,
-  AlertCircle,
-  ShieldCheck,
-  Pill,
-  MessageCircle,
-  Loader2,
+  Upload, ImageIcon, X, AlertCircle, ShieldCheck, Pill, MessageCircle, Loader2,
 } from "lucide-react"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -34,10 +20,28 @@ interface DiseaseResult {
   preventive: string[]
 }
 
-const mockResults: Record<string, DiseaseResult> = {
+// Simple info map for common diseases returned by our model
+const diseaseInfo: Record<string, { symptoms: string[]; treatment: string[]; preventive: string[] }> = {
   default: {
-    disease: "Early Blight (Alternaria solani)",
-    confidence: 94.2,
+    symptoms: [
+      "Visible spots or lesions on leaves",
+      "Discoloration or yellowing of foliage",
+      "Wilting or abnormal growth patterns",
+      "Unusual marks on stems or fruit",
+    ],
+    treatment: [
+      "Remove and destroy affected plant parts immediately",
+      "Apply appropriate fungicide or pesticide",
+      "Consult a local agricultural extension officer",
+    ],
+    preventive: [
+      "Practice crop rotation each season",
+      "Ensure proper plant spacing for air circulation",
+      "Water at the base of the plant, not on leaves",
+      "Use disease-resistant seed varieties",
+    ],
+  },
+  "Early_blight": {
     symptoms: [
       "Dark brown concentric rings on lower leaves",
       "Yellow halos around lesions",
@@ -56,6 +60,46 @@ const mockResults: Record<string, DiseaseResult> = {
       "Apply mulch to prevent soil splash onto leaves",
     ],
   },
+  "Late_blight": {
+    symptoms: [
+      "Water-soaked lesions on leaves that turn brown",
+      "White fuzzy growth on underside of leaves",
+      "Brown discoloration spreading rapidly",
+      "Infected tubers show reddish-brown rot",
+    ],
+    treatment: [
+      "Apply metalaxyl or cymoxanil fungicide immediately",
+      "Remove all infected plant material from the field",
+      "Avoid overhead irrigation",
+    ],
+    preventive: [
+      "Use certified disease-free seed",
+      "Spray preventive fungicides before rainy season",
+      "Ensure good drainage in fields",
+      "Destroy volunteer plants that may harbor the pathogen",
+    ],
+  },
+}
+
+function getInfo(className: string) {
+  // Try to match part of the class name to our info map
+  for (const key of Object.keys(diseaseInfo)) {
+    if (key !== "default" && className.includes(key)) {
+      return diseaseInfo[key]
+    }
+  }
+  return diseaseInfo.default
+}
+
+function formatDiseaseName(className: string) {
+  // Convert "Tomato___Early_blight" → "Tomato — Early Blight"
+  const parts = className.split("___")
+  if (parts.length === 2) {
+    const plant = parts[0].replace(/_/g, " ")
+    const disease = parts[1].replace(/_/g, " ")
+    return `${plant} — ${disease}`
+  }
+  return className.replace(/_/g, " ")
 }
 
 interface DiseaseDetectionProps {
@@ -68,11 +112,13 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<DiseaseResult | null>(null)
+  const [error, setError] = useState("")
 
   const handleFile = useCallback((f: File) => {
     if (!f.type.startsWith("image/")) return
     setFile(f)
     setResult(null)
+    setError("")
     const reader = new FileReader()
     reader.onload = (e) => setPreview(e.target?.result as string)
     reader.readAsDataURL(f)
@@ -81,40 +127,56 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true)
+    else if (e.type === "dragleave") setDragActive(false)
   }, [])
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragActive(false)
-      if (e.dataTransfer.files?.[0]) {
-        handleFile(e.dataTransfer.files[0])
-      }
-    },
-    [handleFile]
-  )
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0])
+  }, [handleFile])
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!file) return
     setAnalyzing(true)
     setResult(null)
-    // Simulate AI analysis
-    setTimeout(() => {
-      setResult(mockResults.default)
+    setError("")
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const res = await fetch("http://localhost:8000/api/disease/predict", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error("Prediction failed")
+
+      const data = await res.json()
+      const info = getInfo(data.class_name)
+
+      setResult({
+        disease: formatDiseaseName(data.class_name),
+        confidence: Math.round(data.confidence * 100 * 10) / 10,
+        symptoms: info.symptoms,
+        treatment: info.treatment,
+        preventive: info.preventive,
+      })
+    } catch {
+      setError("Could not connect to backend. Make sure the server is running.")
+    } finally {
       setAnalyzing(false)
-    }, 3000)
+    }
   }
 
   const clearFile = () => {
     setFile(null)
     setPreview(null)
     setResult(null)
+    setError("")
   }
 
   return (
@@ -124,8 +186,7 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
           Plant Disease Detection
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Upload a leaf image to identify diseases using our AI-powered YOLO v9
-          model.
+          Upload a leaf image to identify diseases using our AI-powered CNN model.
         </p>
       </div>
 
@@ -133,21 +194,15 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
         {/* Upload Zone */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base text-foreground">
-              Upload Leaf Image
-            </CardTitle>
-            <CardDescription>
-              Drag and drop or click to upload a JPEG or PNG image
-            </CardDescription>
+            <CardTitle className="text-base text-foreground">Upload Leaf Image</CardTitle>
+            <CardDescription>Drag and drop or click to upload a JPEG or PNG image</CardDescription>
           </CardHeader>
           <CardContent>
             {!file ? (
               <label
                 htmlFor="leaf-upload"
                 className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
-                  dragActive
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                  dragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50"
                 }`}
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
@@ -157,31 +212,21 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <Upload className="h-6 w-6 text-primary" />
                 </div>
-                <p className="mt-4 text-sm font-medium text-foreground">
-                  Drop your leaf image here
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  or click to browse (JPEG, PNG)
-                </p>
+                <p className="mt-4 text-sm font-medium text-foreground">Drop your leaf image here</p>
+                <p className="mt-1 text-xs text-muted-foreground">or click to browse (JPEG, PNG)</p>
                 <input
                   id="leaf-upload"
                   type="file"
                   accept="image/jpeg,image/png"
                   className="sr-only"
-                  onChange={(e) => {
-                    if (e.target.files?.[0]) handleFile(e.target.files[0])
-                  }}
+                  onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}
                 />
               </label>
             ) : (
               <div className="flex flex-col gap-4">
                 <div className="relative overflow-hidden rounded-lg border border-border">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={preview || ""}
-                    alt="Uploaded leaf"
-                    className="h-56 w-full object-cover"
-                  />
+                  <img src={preview || ""} alt="Uploaded leaf" className="h-56 w-full object-cover" />
                   <button
                     onClick={clearFile}
                     className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/70 text-background transition-colors hover:bg-foreground"
@@ -192,12 +237,8 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 <div className="flex items-center gap-3">
                   <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {(file.size / 1024).toFixed(1)} KB
-                    </p>
+                    <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                   </div>
                 </div>
                 <Button
@@ -206,14 +247,10 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {analyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing with YOLO v9...
-                    </>
-                  ) : (
-                    "Analyze Image"
-                  )}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analyzing...</>
+                  ) : "Analyze Image"}
                 </Button>
+                {error && <p className="text-xs text-destructive">{error}</p>}
               </div>
             )}
           </CardContent>
@@ -231,23 +268,18 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
               </CardContent>
             </Card>
           )}
 
           {result && !analyzing && (
             <>
-              {/* Disease Label & Confidence */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <AlertCircle className="h-5 w-5 text-warning" />
-                      <CardTitle className="text-base text-foreground">
-                        Disease Identified
-                      </CardTitle>
+                      <CardTitle className="text-base text-foreground">Disease Identified</CardTitle>
                     </div>
                     <Badge className="bg-warning/10 text-warning-foreground border-warning/20">
                       {result.confidence}% Match
@@ -255,9 +287,7 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg font-semibold text-foreground">
-                    {result.disease}
-                  </p>
+                  <p className="text-lg font-semibold text-foreground">{result.disease}</p>
                   <div className="mt-3">
                     <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                       <span>Confidence</span>
@@ -268,23 +298,17 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 </CardContent>
               </Card>
 
-              {/* Symptoms */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-5 w-5 text-chart-3" />
-                    <CardTitle className="text-base text-foreground">
-                      Symptoms
-                    </CardTitle>
+                    <CardTitle className="text-base text-foreground">Symptoms</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <ul className="flex flex-col gap-2">
                     {result.symptoms.map((s, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-2 text-sm text-foreground"
-                      >
+                      <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-chart-3" />
                         {s}
                       </li>
@@ -293,27 +317,19 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 </CardContent>
               </Card>
 
-              {/* Treatment & Prevention */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Pill className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-base text-foreground">
-                      Treatment & Prevention
-                    </CardTitle>
+                    <CardTitle className="text-base text-foreground">Treatment & Prevention</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Treatment
-                    </p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Treatment</p>
                     <ul className="flex flex-col gap-2">
                       {result.treatment.map((t, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-sm text-foreground"
-                        >
+                        <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                           <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                           {t}
                         </li>
@@ -322,15 +338,10 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                   </div>
                   <Separator />
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Preventive Measures
-                    </p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Preventive Measures</p>
                     <ul className="flex flex-col gap-2">
                       {result.preventive.map((p, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-sm text-foreground"
-                        >
+                        <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                           <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
                           {p}
                         </li>
@@ -340,14 +351,13 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
                 </CardContent>
               </Card>
 
-              {/* Chat CTA */}
               <Button
                 onClick={() => onChatAbout(result.disease)}
                 variant="outline"
                 className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
               >
                 <MessageCircle className="h-4 w-4" />
-                Ask AI Chatbot about {result.disease.split("(")[0].trim()}
+                Ask AI Chatbot about {result.disease.split("—")[0].trim()}
               </Button>
             </>
           )}
@@ -357,12 +367,8 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <ImageIcon className="h-7 w-7 text-muted-foreground" />
               </div>
-              <p className="mt-4 text-sm font-medium text-foreground">
-                No results yet
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Upload and analyze a leaf image to see results here
-              </p>
+              <p className="mt-4 text-sm font-medium text-foreground">No results yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Upload and analyze a leaf image to see results here</p>
             </Card>
           )}
         </div>
