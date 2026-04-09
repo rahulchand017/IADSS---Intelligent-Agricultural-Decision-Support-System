@@ -1,0 +1,122 @@
+# CROP DISEASES AND TREATMENT
+
+## Tomato Bacterial Spot
+Tomato bacterial spot is caused by Xanthomonas bacteria. Symptoms include small dark spots on leaves, stems, and fruits. Treatment includes copper-based fungicides applied every 7-10 days. Remove and destroy infected plant parts. Avoid overhead irrigation. Use disease-free seeds.
+
+## Tomato Early Blight
+Early blight is caused by Alternaria solani fungus. Dark brown spots with concentric rings appear on lower leaves first. Treat with mancozeb or chlorothalonil fungicide. Rotate crops every 2-3 years. Mulch around plants to prevent soil splash.
+
+## Tomato Late Blight
+Late blight is caused by Phytophthora infestans. Water-soaked lesions appear on leaves turning brown. This disease spreads rapidly in cool wet weather. Apply metalaxyl or cymoxanil fungicides immediately. Destroy infected plants completely.
+
+## Potato Late Blight
+Same pathogen as tomato late blight (Phytophthora infestans). Brown lesions on leaves with white mold on undersides. Use certified disease-free seed potatoes. Apply preventive fungicides before symptoms appear. Harvest early if disease is detected.
+
+## Apple Scab
+Caused by Venturia inaequalis fungus. Olive-green to black scabby spots on leaves and fruits. Apply fungicides at bud break and every 7-14 days during wet weather. Use resistant apple varieties. Remove fallen leaves in autumn.
+
+## Corn (Maize) Common Rust
+Caused by Puccinia sorghi. Small reddish-brown pustules on both leaf surfaces. Plant resistant hybrid varieties. Apply fungicides like propiconazole if infection is severe. Early planting helps avoid peak rust season.
+
+## Rice Blast
+Caused by Magnaporthe oryzae. Diamond-shaped lesions on leaves, stem rot at nodes. Apply tricyclazole or carbendazim fungicides. Use blast-resistant varieties. Avoid excessive nitrogen fertilizer. Drain fields periodically.
+
+## Wheat Leaf Rust
+Caused by Puccinia triticina. Orange-red pustules on upper leaf surface. Plant resistant wheat varieties. Apply fungicides like tebuconazole at flag leaf stage. Monitor fields regularly during grain fill.
+
+## Grape Black Rot
+Caused by Guignardia bidwellii. Brown circular spots on leaves, mummified fruits. Apply mancozeb or myclobutanil fungicides. Remove mummified berries. Ensure good air circulation by proper pruning.
+
+## Strawberry Leaf Scorch
+Caused by Diplocarpon earlianum. Purple to reddish spots on leaves. Remove infected leaves. Apply captan or thiram fungicide. Avoid wetting foliage. Plant in well-drained soils.
+
+## Healthy Plants
+Healthy plants show uniform green color, no spots or lesions, strong stems, and normal growth. Maintain soil health with proper fertilization, adequate watering, and good drainage to keep plants healthy.
+
+---
+
+# CROP PRICE INFORMATION
+
+## Wheat Prices
+Wheat (Gehun) is traded at Indian mandis typically between Rs 1800 to Rs 2500 per quintal. Prices peak in April-May just before harvest and drop post-harvest in June-July. Minimum Support Price (MSP) for wheat is set by the government annually. Punjab, Haryana, and UP are major wheat producing states.
+
+## Rice Prices
+Paddy (Dhan) prices range from Rs 1500 to Rs 2200 per quintal at mandis. Prices are highest in October-November during kharif harvest. Basmati varieties fetch premium prices of Rs 3000-6000 per quintal. Major trading centers include Amritsar, Karnal, and Patna.
+
+## Maize Prices
+Maize (Makka) prices range from Rs 1400 to Rs 2000 per quintal. Demand from poultry feed industry drives prices. Prices are lower during October-December harvest season. Karnataka, Andhra Pradesh, and Bihar are major producers.
+
+## Tomato Prices
+Tomato prices are highly volatile, ranging from Rs 500 to Rs 5000 per quintal depending on season. Prices spike in summer (April-June) due to low supply. Winter season (Nov-Jan) sees maximum production and lowest prices. Nashik and Kolar are major tomato trading centers.
+
+## Onion Prices
+Onion prices range from Rs 500 to Rs 4000 per quintal and are highly volatile. Prices spike when rainfall disrupts supply from Nashik and Solapur regions. Government often intervenes to control onion prices. Export bans are sometimes imposed to stabilize domestic prices.
+
+## Potato Prices
+Potato prices range from Rs 400 to Rs 1200 per quintal. Cold storage availability affects price stability. Agra, Aligarh, and Farrukhabad in UP are major potato trading centers. Prices are lowest in March-April after harvest.
+
+## Soybean Prices
+Soybean (Soya) prices range from Rs 3500 to Rs 5000 per quintal. MSP support keeps floor prices stable. Madhya Pradesh and Maharashtra are major producers. Prices influenced by international soybean oil demand.
+
+## Cotton Prices
+Cotton (Kapas) prices range from Rs 5000 to Rs 7500 per quintal. MSP provides significant price support. Gujarat, Maharashtra, and Telangana are major cotton states. Prices depend heavily on international cotton futures.
+
+## Sugarcane Prices
+Sugarcane is purchased by sugar mills at Fair and Remunerative Price (FRP) set by government, typically Rs 300-340 per quintal. UP, Maharashtra, and Karnataka are major sugarcane states. Farmers often face delayed payments from mills.
+
+## Mustard Prices
+Mustard (Sarson) prices range from Rs 4500 to Rs 6000 per quintal. Rajasthan, MP, and UP are major producers. Prices influenced by edible oil imports and palm oil prices. Rabi crop harvested in March-April.
+
+---
+
+# FERTILIZER GUIDANCE
+
+## Nitrogen Fertilizers (Urea)
+Urea contains 46% nitrogen. Apply 100-120 kg per acre for wheat, 80-100 kg for rice. Split application is recommended: half at sowing, half at tillering stage. Avoid applying before heavy rain as it causes nitrogen leaching. Urea is most economical nitrogen source.
+
+## DAP (Di-Ammonium Phosphate)
+DAP contains 18% nitrogen and 46% phosphorus. Apply 50 kg per acre as basal dose at sowing. Suitable for all crops especially cereals and oilseeds. Promotes root development and early growth. Mix well with soil before sowing.
+
+## Potassium Fertilizers (MOP)
+Muriate of Potash (MOP) contains 60% potassium. Apply 25-30 kg per acre for most crops. Important for fruit quality in tomato, potato, and banana. Potassium improves drought resistance and disease tolerance. Apply as basal dose.
+
+## NPK Complex Fertilizers
+NPK 10:26:26 and 12:32:16 are common complex fertilizers. Suitable for vegetables and cash crops. Apply 75-100 kg per acre as basal dose. Provides balanced nutrition for initial plant growth. More expensive than individual nutrients but convenient.
+
+## Organic Manure
+Well-decomposed farmyard manure (FYM) should be applied at 5-10 tonnes per acre. Vermicompost at 1-2 tonnes per acre improves soil structure. Organic manure improves water retention and beneficial microbial activity. Apply 2-3 weeks before sowing.
+
+---
+
+# CROP MANAGEMENT TIPS
+
+## Irrigation Management
+Wheat requires 4-6 irrigations per season. Critical stages are crown root initiation, tillering, jointing, flowering, and grain fill. Rice requires continuous flooding or alternate wetting and drying (AWD) method to save water. Drip irrigation is recommended for vegetables, fruits, and cash crops.
+
+## Pest Management
+Integrated Pest Management (IPM) combines biological, cultural, and chemical controls. Monitor fields regularly using yellow sticky traps and pheromone traps. Use neem-based biopesticides as first line of defense. Chemical pesticides should be last resort. Follow recommended doses strictly to avoid residue problems.
+
+## Soil Health
+Soil testing every 3 years is recommended. Ideal soil pH for most crops is 6.0-7.5. Sandy soils need more frequent irrigation and fertilization. Clay soils need good drainage management. Crop rotation maintains soil health and breaks pest cycles.
+
+## Seed Treatment
+Treat seeds with carbendazim or thiram at 2g per kg seed before sowing to prevent soil-borne diseases. Rhizobium inoculation for legume crops fixes atmospheric nitrogen. Trichoderma seed treatment improves plant vigor and disease resistance.
+
+## Weather Advisory
+Avoid pesticide spraying during windy conditions or before expected rain. High humidity above 80% promotes fungal diseases - increase monitoring. Temperature above 40°C causes heat stress - irrigate in evening. Frost advisory: cover sensitive crops with polythene sheets.
+
+---
+
+# GOVERNMENT SCHEMES FOR FARMERS
+
+## PM-KISAN
+Pradhan Mantri Kisan Samman Nidhi provides Rs 6000 per year in three installments directly to farmers' bank accounts. All small and marginal farmers with cultivable land are eligible. Registration through Common Service Centers or pm-kisan.gov.in portal.
+
+## Fasal Bima Yojana
+Pradhan Mantri Fasal Bima Yojana (PMFBY) provides crop insurance at very low premiums: 2% for kharif, 1.5% for rabi, and 5% for commercial crops. Covers losses due to natural calamities, pests, and diseases. Claims are settled based on crop cutting experiments.
+
+## Kisan Credit Card
+Kisan Credit Card (KCC) provides short-term credit for crop production at subsidized interest rate of 4-7%. Credit limit based on land holding and crop requirements. Can be used for allied activities like animal husbandry and fisheries. Available through all nationalized banks and cooperative banks.
+
+## eNAM
+National Agriculture Market (eNAM) is online trading platform connecting mandis across India. Farmers can get better prices by accessing wider market. Currently covers 1000+ mandis across 18 states. Reduces middlemen and improves price discovery for farmers.
