@@ -7,8 +7,13 @@ Loads the trained CNN model and performs inference on leaf images.
 import os
 import json
 import logging
+import numpy as np
 from pathlib import Path
 from typing import Optional, List, Dict
+
+# Suppress TensorFlow warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +41,7 @@ DEFAULT_CLASSES = [
 
 def get_model_path() -> Path:
     base = Path(__file__).resolve().parent
-    return base / "model" / "plant_disease.h5"
+    return base / "model" / "plant_disease_savedmodel"
 
 
 def _load_class_names() -> List[str]:
@@ -62,7 +67,7 @@ def load_model() -> bool:
 
     try:
         import tensorflow as tf
-        _model = tf.keras.models.load_model(str(model_path), compile=False)
+        _model = tf.saved_model.load(str(model_path))
         loaded = _load_class_names()
         _class_names = loaded if loaded else DEFAULT_CLASSES
         logger.info(f"Disease model loaded. Classes: {len(_class_names)}")
@@ -81,10 +86,13 @@ def predict(image_array, top_k: int = 3) -> List[Dict]:
             return [{"class": "Model not loaded", "confidence": 0.0}]
 
     try:
-        import numpy as np
-        probs       = _model.predict(image_array, verbose=0)[0]
-        top_indices = np.argsort(probs)[::-1][:top_k]
+        import tensorflow as tf
+        infer     = _model.signatures['serving_default']
+        input_key = list(infer.structured_input_signature[1].keys())[0]
+        output    = infer(**{input_key: tf.constant(image_array, dtype=tf.float32)})
+        probs     = list(output.values())[0].numpy()[0]
 
+        top_indices = np.argsort(probs)[::-1][:top_k]
         return [
             {
                 "class"     : _class_names[i] if i < len(_class_names) else f"Class_{i}",
@@ -97,11 +105,9 @@ def predict(image_array, top_k: int = 3) -> List[Dict]:
         return [{"class": "Error", "confidence": 0.0, "error": str(e)}]
 
 
-def preprocess_image(image_bytes: bytes) -> Optional["np.ndarray"]:
+def preprocess_image(image_bytes: bytes) -> Optional[np.ndarray]:
     try:
-        import numpy as np
         import tensorflow as tf
-
         img = tf.io.decode_image(image_bytes, channels=3, expand_animations=False)
         img = tf.image.resize(img, _IMAGE_SIZE)
         img = tf.cast(img, tf.float32) / 255.0
