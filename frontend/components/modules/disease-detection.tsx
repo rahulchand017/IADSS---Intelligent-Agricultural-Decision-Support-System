@@ -156,11 +156,11 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
       if (!res.ok) throw new Error("Prediction failed")
 
       const data = await res.json()
-      const info = getInfo(data.class_name)
+      const info = getInfo(data.top_class)
 
       setResult({
-        disease: formatDiseaseName(data.class_name),
-        confidence: Math.round(data.confidence * 100 * 10) / 10,
+        disease: formatDiseaseName(data.top_class),
+        confidence: Math.round(data.top_confidence * 100 * 10) / 10,
         symptoms: info.symptoms,
         treatment: info.treatment,
         preventive: info.preventive,

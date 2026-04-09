@@ -32,7 +32,7 @@ export function Chatbot({ initialMessage }: ChatbotProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I'm your agricultural AI assistant powered by Gemini. I can help with plant diseases, soil management, crop practices, and market insights. How can I assist you today?",
+        "Hello! I'm your agricultural AI assistant powered by Groq. I can help with plant diseases, soil management, crop practices, and market insights. How can I assist you today?",
       timestamp: new Date(),
     },
   ])
@@ -84,7 +84,7 @@ export function Chatbot({ initialMessage }: ChatbotProps) {
       const assistantMsg: Message = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content: data.response,
+        content: data.reply,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMsg])
