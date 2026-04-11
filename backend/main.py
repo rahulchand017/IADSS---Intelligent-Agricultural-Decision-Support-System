@@ -10,6 +10,7 @@ import logging
 from disease_module.routes import router as disease_router
 from price_module.routes   import router as price_router
 from chatbot_module.routes import router as chatbot_router
+from soil_module.routes    import router as soil_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,7 +25,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allowing Next.js frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -64,6 +64,12 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"Chatbot RAG not loaded: {e}")
 
+    try:
+        from soil_module.predictor import model
+        logger.info("Soil analysis model loaded")
+    except Exception as e:
+        logger.warning(f"Soil model not loaded: {e}")
+
     logger.info("IADSS API ready at http://localhost:8000")
 
 
@@ -88,6 +94,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(disease_router, prefix="/api/disease", tags=["Disease Detection"])
 app.include_router(price_router,   prefix="/api/price",   tags=["Crop Price Prediction"])
 app.include_router(chatbot_router, prefix="/api/chat",    tags=["AI Chatbot"])
+app.include_router(soil_router,    prefix="/api/soil",    tags=["Soil Analysis"])
 
 
 @app.get("/", tags=["General"])
@@ -100,6 +107,7 @@ async def root():
             "Disease Detection → /api/disease",
             "Price Prediction  → /api/price",
             "AI Chatbot        → /api/chat",
+            "Soil Analysis     → /api/soil",
         ]
     }
 
@@ -113,6 +121,7 @@ async def health_check():
             "disease_detection": "active",
             "price_prediction":  "active",
             "chatbot":           "active",
+            "soil_analysis":     "active",
         }
     }
 
