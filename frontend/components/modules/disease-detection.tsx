@@ -103,7 +103,7 @@ function formatDiseaseName(className: string) {
 }
 
 interface DiseaseDetectionProps {
-  onChatAbout: (disease: string) => void
+  onChatAbout: (disease: string, confidence?: number) => void
 }
 
 export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
@@ -355,7 +355,7 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
               </Card>
 
               <Button
-                onClick={() => onChatAbout(result.disease)}
+                onClick={() => onChatAbout(result.disease, result.confidence)}
                 variant="outline"
                 className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
               >
