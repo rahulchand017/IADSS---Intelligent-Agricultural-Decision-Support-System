@@ -12,6 +12,7 @@ import {
   Info,
   BeakerIcon,
   CloudRain,
+  MapPin,
 } from "lucide-react"
 import {
   Card,
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/tooltip"
 
 interface SoilForm {
+  pincode: string
   nitrogen: string
   phosphorus: string
   potassium: string
@@ -61,6 +63,7 @@ interface SoilResult {
 }
 
 const initialForm: SoilForm = {
+  pincode: "",
   nitrogen: "",
   phosphorus: "",
   potassium: "",
@@ -70,7 +73,6 @@ const initialForm: SoilForm = {
   rainfall: "",
 }
 
-// Calculate soil health score from inputs
 function calculateHealthScore(form: SoilForm): number {
   const n = parseFloat(form.nitrogen)
   const p = parseFloat(form.phosphorus)
@@ -78,19 +80,15 @@ function calculateHealthScore(form: SoilForm): number {
   const ph = parseFloat(form.ph)
 
   let score = 0
-  // N: ideal 40-80
   if (n >= 40 && n <= 80) score += 25
   else if (n >= 20 && n <= 100) score += 15
   else score += 5
-  // P: ideal 30-60
   if (p >= 30 && p <= 60) score += 25
   else if (p >= 15 && p <= 80) score += 15
   else score += 5
-  // K: ideal 30-60
   if (k >= 30 && k <= 60) score += 25
   else if (k >= 15 && k <= 80) score += 15
   else score += 5
-  // pH: ideal 6.0-7.5
   if (ph >= 6.0 && ph <= 7.5) score += 25
   else if (ph >= 5.5 && ph <= 8.0) score += 15
   else score += 5
@@ -98,7 +96,6 @@ function calculateHealthScore(form: SoilForm): number {
   return score
 }
 
-// Generate fertilizer advice based on top crop
 function getFertilizerAdvice(crop: string, n: number, p: number, k: number) {
   const low_n = n < 40
   const low_p = p < 30
@@ -117,7 +114,6 @@ function getFertilizerAdvice(crop: string, n: number, p: number, k: number) {
   }
 }
 
-// Crop-specific reason messages
 function getCropReason(crop: string): string {
   const reasons: Record<string, string> = {
     rice: "High humidity and nitrogen levels are ideal for paddy cultivation.",
@@ -172,12 +168,39 @@ export function SoilAnalysis() {
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<SoilResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [weatherCity, setWeatherCity] = useState<string | null>(null)
+  const [fetchingWeather, setFetchingWeather] = useState(false)
 
   const updateField = (field: keyof SoilForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const isFormValid = Object.values(form).every((v) => v.trim() !== "")
+  const fetchWeather = async (pincode: string) => {
+    if (pincode.length !== 6) return
+    setFetchingWeather(true)
+    setWeatherCity(null)
+    try {
+      const res = await fetch(`http://localhost:8000/api/weather/by-pin/${pincode}`)
+      const data = await res.json()
+      if (!data.error) {
+        setForm((prev) => ({
+          ...prev,
+          temperature: String(data.temperature),
+          humidity: String(data.humidity),
+          rainfall: String(data.rainfall),
+        }))
+        setWeatherCity(data.city)
+      }
+    } catch (e) {
+      console.error("Weather fetch failed", e)
+    } finally {
+      setFetchingWeather(false)
+    }
+  }
+
+  const isFormValid = Object.entries(form)
+    .filter(([key]) => key !== "pincode")
+    .every(([, v]) => v.trim() !== "")
 
   const handleAnalyze = async () => {
     if (!isFormValid) return
@@ -248,7 +271,7 @@ export function SoilAnalysis() {
           Soil Analysis & Recommendations
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Enter your soil test results to get AI-powered crop recommendations and fertilizer advice.
+          Enter your PIN code to auto-fill weather data, then add soil parameters for AI-powered crop recommendations.
         </p>
       </div>
 
@@ -257,12 +280,48 @@ export function SoilAnalysis() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base text-foreground">Soil Parameters</CardTitle>
-            <CardDescription>Enter the values from your soil test report</CardDescription>
+            <CardDescription>Enter PIN code to auto-fill weather, then add soil values</CardDescription>
           </CardHeader>
           <CardContent>
+
+            {/* PIN Code field — full width on top */}
+            <div className="mb-4 flex flex-col gap-1.5">
+              <Label htmlFor="pincode" className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                PIN Code
+                <span className="text-muted-foreground">(auto-fills weather)</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="pincode"
+                  type="text"
+                  placeholder="e.g., 144411"
+                  value={form.pincode}
+                  maxLength={6}
+                  onChange={(e) => {
+                    updateField("pincode", e.target.value)
+                    fetchWeather(e.target.value)
+                  }}
+                  className="text-foreground"
+                />
+                {fetchingWeather && (
+                  <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              {weatherCity && (
+                <p className="text-xs text-green-600">
+                  📍 Weather loaded for {weatherCity} — temperature, humidity & rainfall auto-filled!
+                </p>
+              )}
+            </div>
+
+            {/* Soil parameter fields — 2 column grid */}
             <div className="grid grid-cols-2 gap-4">
               {fields.map((f) => {
                 const Icon = f.icon
+                const isAutoFilled =
+                  weatherCity &&
+                  (f.key === "temperature" || f.key === "humidity" || f.key === "rainfall")
                 return (
                   <div key={f.key} className="flex flex-col gap-1.5">
                     <Label htmlFor={f.key} className="flex items-center gap-1.5 text-xs font-medium text-foreground">
@@ -276,7 +335,7 @@ export function SoilAnalysis() {
                       placeholder={f.placeholder}
                       value={form[f.key]}
                       onChange={(e) => updateField(f.key, e.target.value)}
-                      className="text-foreground"
+                      className={`text-foreground ${isAutoFilled ? "border-green-400 bg-green-50 dark:bg-green-950/20" : ""}`}
                     />
                   </div>
                 )
@@ -325,7 +384,6 @@ export function SoilAnalysis() {
 
           {result && !analyzing && (
             <TooltipProvider>
-              {/* Health Score */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base text-foreground">Soil Health Score</CardTitle>
@@ -354,7 +412,6 @@ export function SoilAnalysis() {
                 </CardContent>
               </Card>
 
-              {/* Top 3 Crops */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
@@ -392,7 +449,6 @@ export function SoilAnalysis() {
                 </CardContent>
               </Card>
 
-              {/* Fertilizer Advice */}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
@@ -427,7 +483,7 @@ export function SoilAnalysis() {
               </div>
               <p className="mt-4 text-sm font-medium text-foreground">No analysis yet</p>
               <p className="mt-1 text-center text-xs text-muted-foreground">
-                Fill in your soil parameters and click &quot;Get Recommendations&quot;
+                Enter your PIN code and soil parameters, then click &quot;Get Recommendations&quot;
               </p>
             </Card>
           )}
