@@ -71,7 +71,7 @@ export function Chatbot({ initialMessage }: ChatbotProps) {
     setIsTyping(true)
 
     try {
-      const res = await fetch("http://localhost:8000/api/chat/chat", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),

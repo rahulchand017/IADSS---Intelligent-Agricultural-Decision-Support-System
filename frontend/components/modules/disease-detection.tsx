@@ -148,7 +148,7 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
       const formData = new FormData()
       formData.append("file", file)
 
-      const res = await fetch("http://localhost:8000/api/disease/predict", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chat`, {
         method: "POST",
         body: formData,
       })
