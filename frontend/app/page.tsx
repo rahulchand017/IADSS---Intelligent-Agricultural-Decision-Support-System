@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { AppShell } from "@/components/app-shell"
 import { Dashboard } from "@/components/modules/dashboard"
@@ -12,10 +11,11 @@ export default function Page() {
   const [activeModule, setActiveModule] = useState("dashboard")
   const [chatInitialMessage, setChatInitialMessage] = useState<string>("")
 
-  const handleChatAbout = (disease: string) => {
-    setChatInitialMessage(
-      `Tell me more about ${disease} and how to manage it.`
-    )
+  const handleChatAbout = (disease: string, confidence?: number) => {
+    const msg = confidence
+      ? `I just detected ${disease} in my crop with ${confidence}% confidence. What should I do to treat and prevent this disease?`
+      : `Tell me more about ${disease} and how to manage it.`
+    setChatInitialMessage(msg)
     setActiveModule("chat")
   }
 
@@ -29,12 +29,11 @@ export default function Page() {
       )}
       {activeModule === "soil" && <SoilAnalysis />}
       {activeModule === "price" && <PricePredictor />}
-      {activeModule === "chat" && (
-        <Chatbot
-          key={chatInitialMessage}
-          initialMessage={chatInitialMessage}
-        />
-      )}
+
+      {/* Keep Chatbot always mounted so chat history persists across tab switches */}
+      <div className={activeModule === "chat" ? "block" : "hidden"}>
+        <Chatbot key={chatInitialMessage} initialMessage={chatInitialMessage} />
+      </div>
     </AppShell>
   )
 }
