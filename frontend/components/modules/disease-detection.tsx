@@ -148,8 +148,11 @@ export function DiseaseDetection({ onChatAbout }: DiseaseDetectionProps) {
       const formData = new FormData()
       formData.append("file", file)
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chat`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/disease/predict`, {
         method: "POST",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
         body: formData,
       })
 

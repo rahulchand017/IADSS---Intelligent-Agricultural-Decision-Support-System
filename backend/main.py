@@ -24,12 +24,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allow Next.js frontend to communicate with backend
+# Allowing Next.js frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
+        "https://iadss-app.vercel.app",
+        "https://*.ngrok-free.dev",
+        "https://*.ngrok.io",
     ],
     allow_credentials=True,
     allow_methods=["*"],
