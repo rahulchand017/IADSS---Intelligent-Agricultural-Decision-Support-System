@@ -11,6 +11,7 @@ from disease_module.routes import router as disease_router
 from price_module.routes   import router as price_router
 from chatbot_module.routes import router as chatbot_router
 from soil_module.routes    import router as soil_router
+from weather_module.routes import router as weather_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -95,6 +96,7 @@ app.include_router(disease_router, prefix="/api/disease", tags=["Disease Detecti
 app.include_router(price_router,   prefix="/api/price",   tags=["Crop Price Prediction"])
 app.include_router(chatbot_router, prefix="/api/chat",    tags=["AI Chatbot"])
 app.include_router(soil_router,    prefix="/api/soil",    tags=["Soil Analysis"])
+app.include_router(weather_router, prefix="/api/weather", tags=["Weather"])
 
 
 @app.get("/", tags=["General"])
