@@ -23,13 +23,15 @@ const CROPS = [
   "Sunflower", "Tea", "Tobacco", "Tomato", "Wheat",
 ]
 
-// generates a simple forecast curve around the predicted price
+// generates a forecast curve with realistic volatility based on horizon
 function buildForecast(basePrice: number, predictedPrice: number, days: number) {
   const data = []
   for (let i = 0; i <= days; i++) {
     const t = i / days
+    // longer horizon = more uncertainty = more variation
+    const volatility = 0.02 + (days / 30) * 0.03
     const price = basePrice + (predictedPrice - basePrice) * t
-    const noise = (Math.random() - 0.5) * basePrice * 0.01
+    const noise = (Math.random() - 0.5) * basePrice * volatility
     data.push({
       day  : i === 0 ? "Today" : `Day ${i}`,
       price: Math.round((price + noise) * 100) / 100,
@@ -49,11 +51,11 @@ interface ForecastResult {
 }
 
 export function PricePredictor() {
-  const [crop, setCrop]               = useState("")
+  const [crop, setCrop]                 = useState("")
   const [currentPrice, setCurrentPrice] = useState("")
-  const [analyzing, setAnalyzing]     = useState(false)
-  const [forecast, setForecast]       = useState<ForecastResult | null>(null)
-  const [error, setError]             = useState("")
+  const [analyzing, setAnalyzing]       = useState(false)
+  const [forecast, setForecast]         = useState<ForecastResult | null>(null)
+  const [error, setError]               = useState("")
 
   const handlePredict = async () => {
     if (!crop || !currentPrice) return
@@ -68,7 +70,6 @@ export function PricePredictor() {
         body   : JSON.stringify({
           crop,
           current_price      : parseFloat(currentPrice),
-          // sensible Indian averages as defaults — user can extend later
           temperature        : 28.0,
           rainfall           : 100.0,
           supply_volume      : 2500.0,
@@ -235,7 +236,7 @@ export function PricePredictor() {
                       <TabsTrigger value="30" className="flex-1">30 Days</TabsTrigger>
                     </TabsList>
                     {(["7", "14", "30"] as const).map((period) => {
-                      const data = period === "7" ? forecast.day7
+                      const data = period === "7"  ? forecast.day7
                                  : period === "14" ? forecast.day14
                                  : forecast.day30
                       return (
@@ -251,10 +252,14 @@ export function PricePredictor() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                 <XAxis dataKey="day" fontSize={11} tickLine={false} axisLine={false}
-                                  tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                                  interval={period === "30" ? 4 : period === "14" ? 2 : 1}
+                                />
                                 <YAxis fontSize={11} tickLine={false} axisLine={false}
                                   tick={{ fill: "hsl(var(--muted-foreground))" }}
-                                  tickFormatter={(v) => `₹${v}`} />
+                                  tickFormatter={(v) => `₹${v}`}
+                                  domain={["auto", "auto"]}
+                                />
                                 <Tooltip
                                   contentStyle={{
                                     background: "hsl(var(--card))",
